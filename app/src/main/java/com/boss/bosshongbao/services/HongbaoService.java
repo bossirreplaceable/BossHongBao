@@ -36,6 +36,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
     private static final String QQ_UNPICK_HONGBAO = "点击拆开";
     private static final String QQ_PASSWORD_HONGBAO = "口令红包";
     private static final String QQ_PASSWORD_ENTER = "点击输入口令";
+    private static final String WECHAT_LUCKMONEY_DONE = "你领取了";
     private static final String QQ_PASSWORD_SEND = "发送";
     private static final String QQ_HONGBAO_ACTIVITY = "SplashActivity";
     private static final String WECHAT_LUCKMONEY_RECEIVE_ACTIVITY = "LuckyMoneyReceiveUI";
@@ -45,7 +46,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
     private static final String QQ_PACKAGENAME = "com.tencent.mobileqq";
     private static final String WECHAT_PACKAGENAME = "com.tencent.mm";
     private String currentActivityName = WECHAT_LUCKMONEY_GENERAL_ACTIVITY;
-    private boolean isNotification = false, isChatContent = false;
+    private boolean isNotification = false, isChatContent = false, isSend = false;
     private boolean isOpen = false, isUnpick = false, isGreetings = false;
     private AccessibilityNodeInfo rootNodeInfo, mReceiveNode, mUnpickNode;
     //--------------------------------------------------------------------
@@ -65,13 +66,12 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if (sharedPreferences == null) return;
         setCurrentActivityName(event);
-        Log.e("Name-----------",currentActivityName);
+        Log.e("Name-----------", currentActivityName);
         if (sharedPreferences.getBoolean("pref_watch_notification", false)) {
             if (!isNotification && sharedPreferences.getBoolean("pref_wechat", false)) {
                 watchNotifications(event);
             }
             if (!isNotificationQQ && sharedPreferences.getBoolean("pref_qq", false)) {
-                //Log.e("Boss-----------", "" + 1);
                 watchNotificationsQQ(event);
             }
         }
@@ -81,9 +81,12 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
             if (chatNode != null) {
                 chatNode.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 isChatContent = true;
+
             }
 
         }
+
+
         if (isNotificationQQ && event.getPackageName().equals(QQ_PACKAGENAME)) {
             if (sharedPreferences.getBoolean("pref_watch_chat", false)) {
                 watchQQ(event);
@@ -97,21 +100,23 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         }
         Log.e("ET---------", "" + 0);
         if (isGreetings && signature.commentString != null
-               ) {
-
-            Log.e("ET---------", "" + 1);
+                && currentActivityName.contains(WECHAT_LUCKMONEY_GENERAL_ACTIVITY)) {
             sendComment();
-            AccessibilityNodeInfo nowNode = getRootInActiveWindow();
-            AccessibilityNodeInfo btNode = findOpenButton(nowNode);
-            if (btNode != null) {
-                Log.e("ET---------", "success");
-            } else {
-
-            }
-            //isGreetings = false;
-            //signature.commentString = null;
+            isGreetings = false;
+            signature.commentString = null;
         }
+        if (isSend && currentActivityName.contains(WECHAT_LUCKMONEY_GENERAL_ACTIVITY)) {
+            Log.e("发送---------", "111");
+            rootNodeInfo=getRootInActiveWindow();
+            AccessibilityNodeInfo sendNode = findOpenButton(rootNodeInfo);
+            if (sendNode != null) {
+                Log.e("发送---------", "success");
+                sendNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                isSend=false;
+            }
 
+
+        }
 
     }
 
@@ -150,16 +155,21 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
     private void checkNodeInfo(int eventType) {
         if (this.rootNodeInfo == null) return;
 
+
+        Log.e("Notification---------", "" + 1);
         /* 聊天会话窗口，遍历节点匹配“领取红包”和"查看红包" */
         if (currentActivityName.contains(WECHAT_LUCKMONEY_CHATTING_ACTIVITY)
                 || currentActivityName.contains(WECHAT_LUCKMONEY_GENERAL_ACTIVITY)) {
             AccessibilityNodeInfo node1 = (sharedPreferences.getBoolean("pref_watch_self", false)) ?
                     this.getTheLastNode(rootNodeInfo, WECHAT_VIEW_OTHERS_CH, WECHAT_VIEW_SELF_CH) : this.getTheLastNode(rootNodeInfo, WECHAT_VIEW_OTHERS_CH);
+            Log.e("Notification---------", "" + 2);
             if (node1 != null) {
+                Log.e("Notification---------", "" + 3);
                 String excludeWords = sharedPreferences.getString("pref_watch_exclude_words", "");
                 if (this.signature.generateSignature(node1, excludeWords)) {
                     isOpen = true;
                     mReceiveNode = node1;
+                    Log.e("Notification---------", "" + 4);
                 }
                 return;
             }
@@ -171,7 +181,9 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
             if (node2 != null && "android.widget.Button".equals(node2.getClassName())) {
                 mUnpickNode = node2;
                 isUnpick = true;
+                Log.e("Notification---------", "" + 5);
                 return;
+
             }
         }
 
@@ -314,57 +326,58 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         AccessibilityNodeInfo button;
         for (int i = 0; i < node.getChildCount(); i++) {
             button = findOpenButton(node.getChild(i));
+            Log.e("发送-----------2",button.getClassName().toString());
             if (button != null) {
+                Log.e("发送-----------3",button.getClassName().toString());
                 return button;
             }
         }
         return null;
     }
+
     private void sendComment() {
         try {
             AccessibilityNodeInfo etNode = findEditText(this.rootNodeInfo);
-            Log.e("ET---------", "" + 5);
-            if (etNode!=null) {
+            Log.e("ET---------", "" + 8);
+            if (etNode != null) {
                 Bundle arguments = new Bundle();
                 arguments.putCharSequence(AccessibilityNodeInfo
                         .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, signature.commentString);
                 etNode.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
+                isSend = true;
             }
 
         } catch (Exception e) {
-            // Not supported
+            isGreetings = false;
+
         }
     }
+
     private AccessibilityNodeInfo findEditText(AccessibilityNodeInfo node) {
-        if (node == null)
+        if (node == null) {
             return null;
-        Log.e("ET---------", "" + 2);
+        }
+
         //非layout元素
         if (node.getChildCount() == 0) {
             if ("android.widget.EditText".equals(node.getClassName())) {
-                Log.e("ET---------", "" + 4);
                 return node;
             } else {
-                Log.e("ET---------", "3" + node.getClassName());
                 return null;
             }
         }
-        Log.e("ET---------", "" + 5);
         //layout元素，遍历找button
         AccessibilityNodeInfo button;
         for (int i = 0; i < node.getChildCount(); i++) {
-            button = findOpenButton(node.getChild(i));
-            Log.e("ET---------", "" + 6);
+            button = findEditText(node.getChild(i));
+            Log.e("4------------boss", node.getChild(i).getClassName() + "");
             if (button != null) {
-                Log.e("ET---------", "" + 7);
+                Log.e("5-------------boss", button.getClassName().toString());
                 return button;
             }
         }
         return null;
     }
-
-
-
 
     private AccessibilityNodeInfo getTheLastNode(AccessibilityNodeInfo rootNode, String... texts) {
         int bottom = 0;
@@ -459,6 +472,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         }
         return lastNode;
     }
+
 
     @Override
     public void onServiceConnected() {

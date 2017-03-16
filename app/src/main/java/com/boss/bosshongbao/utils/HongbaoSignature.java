@@ -37,12 +37,13 @@ public class HongbaoSignature {
 
             Rect bounds = new Rect();
             messageNode.getBoundsInScreen(bounds);
+            Log.e("Boss-----------", "11---" +bounds.bottom);
             if (bounds.top < 0) return false;
-
+            Log.e("Boss-----------", "12---");
             /* The sender and possible timestamp. Should mean something too. */
             String[] hongbaoInfo = getSenderContentDescriptionFromNode(messageNode);
-            if (this.getSignature(hongbaoInfo[0], hongbaoContent, hongbaoInfo[1]).equals(this.toString())) return false;
-            Log.e("Boss-----------", "" + 11);
+            //if (this.getSignature(hongbaoInfo[0], hongbaoContent, hongbaoInfo[1]).equals(this.toString())) return false;
+            Log.e("Boss-----------", "" + 13);
             /* So far we make sure it's a valid new coming hongbao. */
             this.sender = hongbaoInfo[0];
             this.time = hongbaoInfo[1];

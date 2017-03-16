@@ -48,7 +48,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
     private String currentActivityName = WECHAT_LUCKMONEY_GENERAL_ACTIVITY;
     private boolean isNotification = false, isChatContent = false, isSend = false;
     private boolean isOpen = false, isUnpick = false, isGreetings = false;
-    private AccessibilityNodeInfo rootNodeInfo, mReceiveNode, mUnpickNode;
+    private AccessibilityNodeInfo rootNodeInfo, mReceiveNode, mUnpickNode, sendNode;
     //--------------------------------------------------------------------
     private boolean isNotificationQQ = false, isOpenQQ = false;
     private AccessibilityNodeInfo rootNodeInfoQQ;
@@ -81,12 +81,15 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
             if (chatNode != null) {
                 chatNode.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 isChatContent = true;
-
             }
-
         }
+        if (event.getClassName().equals("android.widget.Button") && currentActivityName.contains(WECHAT_LUCKMONEY_GENERAL_ACTIVITY)) {
 
-
+            AccessibilityNodeInfo sendNode1 = event.getSource();
+            if (sendNode1 != null) {
+                sendNode = sendNode1;
+            }
+        }
         if (isNotificationQQ && event.getPackageName().equals(QQ_PACKAGENAME)) {
             if (sharedPreferences.getBoolean("pref_watch_chat", false)) {
                 watchQQ(event);
@@ -98,28 +101,18 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
             }
 
         }
-        Log.e("ET---------", "" + 0);
         if (isGreetings && signature.commentString != null
                 && currentActivityName.contains(WECHAT_LUCKMONEY_GENERAL_ACTIVITY)) {
             sendComment();
             isGreetings = false;
             signature.commentString = null;
         }
-        if (isSend && currentActivityName.contains(WECHAT_LUCKMONEY_GENERAL_ACTIVITY)) {
-            Log.e("发送---------", "111");
-            rootNodeInfo=getRootInActiveWindow();
-            AccessibilityNodeInfo sendNode = findOpenButton(rootNodeInfo);
-            if (sendNode != null) {
-                Log.e("发送---------", "success");
-                sendNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                isSend=false;
-            }
-
-
+        if (isSend && sendNode != null) {
+            sendNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            isSend = false;
         }
 
     }
-
 
     private void watchChat(AccessibilityEvent event) {
         this.rootNodeInfo = getRootInActiveWindow();
@@ -326,9 +319,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         AccessibilityNodeInfo button;
         for (int i = 0; i < node.getChildCount(); i++) {
             button = findOpenButton(node.getChild(i));
-            Log.e("发送-----------2",button.getClassName().toString());
             if (button != null) {
-                Log.e("发送-----------3",button.getClassName().toString());
                 return button;
             }
         }
@@ -370,7 +361,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         AccessibilityNodeInfo button;
         for (int i = 0; i < node.getChildCount(); i++) {
             button = findEditText(node.getChild(i));
-            Log.e("4------------boss", node.getChild(i).getClassName() + "");
+
             if (button != null) {
                 Log.e("5-------------boss", button.getClassName().toString());
                 return button;

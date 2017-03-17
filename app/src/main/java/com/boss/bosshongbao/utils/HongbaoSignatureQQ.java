@@ -13,7 +13,6 @@ public class HongbaoSignatureQQ {
     public boolean others;
 
 
-
     public boolean generateSignatureQQ(AccessibilityNodeInfo node, String excludeWords) {
         try {
 
@@ -31,7 +30,7 @@ public class HongbaoSignatureQQ {
             for (String word : excludeWordsArray) {
                 if (word.length() > 0 && hongbaoContent.contains(word)) return false;
             }
-            Log.e("QQ-------------3", 3+"");
+            Log.e("QQ-------------3", 3 + "");
 
             /* The container node for a piece of message. It should be inside the screen.
                 Or sometimes it will get opened twice while scrolling. */
@@ -41,11 +40,12 @@ public class HongbaoSignatureQQ {
             messageNode.getBoundsInScreen(bounds);
 
             if (bounds.top < 0) return false;
-            Log.e("QQ-------------", 4+"");
+
             /* The sender and possible timestamp. Should mean something too. */
             String[] hongbaoInfo = getSenderContentDescriptionFromNode(messageNode);
             //if (this.getSignature(hongbaoInfo[0], hongbaoContent, hongbaoInfo[1]).equals(this.toString())) return false;
-            Log.e("QQ-------------", 5+"");
+            Log.e("QQ-------------", 4 + "" + hongbaoInfo[0]);
+            Log.e("QQ-------------", 5 + "" + hongbaoContent);
             /* So far we make sure it's a valid new coming hongbao. */
             this.sender = hongbaoInfo[0];
             this.time = hongbaoInfo[1];
@@ -81,19 +81,20 @@ public class HongbaoSignatureQQ {
     }
 
     private String[] getSenderContentDescriptionFromNode(AccessibilityNodeInfo node) {
+
         int count = node.getChildCount();
         String[] result = {"unknownSender", "unknownTime"};
-        for (int i = 0; i < count; i++) {
-            AccessibilityNodeInfo thisNode = node.getChild(i);
-            if ("android.widget.ImageView".equals(thisNode.getClassName()) && "unknownSender".equals(result[0])) {
-                CharSequence contentDescription = thisNode.getContentDescription();
-                if (contentDescription != null)
-                    result[0] = contentDescription.toString().replaceAll("头像$", "");
-            } else if ("android.widget.TextView".equals(thisNode.getClassName()) && "unknownTime".equals(result[1])) {
-                CharSequence thisNodeText = thisNode.getText();
-                if (thisNodeText != null) result[1] = thisNodeText.toString();
-            }
+        if (node.getChild(1).getClassName().equals("android.widget.TextView")) {
+
+            result[0] = node.getChild(1).getText().toString();
+
+        } else if (node.getChild(2).getClassName().equals("android.widget.TextView")) {
+
+            result[0] = node.getChild(2).getText().toString();
+
         }
+
+
         return result;
     }
 

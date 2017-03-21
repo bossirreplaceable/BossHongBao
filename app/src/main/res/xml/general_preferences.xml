@@ -26,7 +26,7 @@
             android:title="@string/watch_notifications" />
         <CheckBoxPreference
             android:defaultValue="false"
-            android:key="pref_watch_list"
+            android:key="pref_chat_content"
             android:summary="@string/watch_list_hint"
             android:title="@string/watch_list" />
     </PreferenceCategory>
@@ -34,9 +34,9 @@
     <PreferenceCategory
         android:layout="@layout/preference_category"
         android:title="辅助功能">
-        <CheckBoxPreference
-            android:defaultValue="false"
+        <EditTextPreference
             android:key="pref_send_greetings"
+            android:summary="随机选择您输入的感谢语(空格间隔)"
             android:title="发送感谢语" />
     </PreferenceCategory>
 

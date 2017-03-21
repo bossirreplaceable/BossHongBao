@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">全能抢红包</string>
     <string name="aaa">sajij</string>
-    <string name="app_version">v4.0</string>
+    <string name="app_version">v1.0</string>
     <string name="app_description">∠( ᐛ 」∠)_使用指南∠( ᐛ 」∠)_\n\n ○ 狠戳插件开关\n ○ 回到微信聊天\n ○ 坐等红包进账\n\n 遇到问题, 欢迎通过 GitHub Issue 反馈~\n https://github.com/geeeeeeeeek/WeChatLuckyMoney</string>
     <string name="preference">偏好设置</string>
     <string name="update_error">遇到一些问题,请前往GitHub手动更新喵(ฅ´ω`ฅ)</string>
@@ -16,7 +16,7 @@
     <string name="url_github_issues">https://github.com/geeeeeeeeek/WeChatLuckyMoney/issues</string>
     <string name="home_banner_ad_unit_id">ca-app-pub-8428619221469478/4736153346</string>
     <string name="webview_banner_ad_unit_id">ca-app-pub-8428619221469478/4163694548</string>
-    <string name="community">社区</string>
+    <string name="welfare">福利</string>
     <string name="settings">设置</string>
     <string name="uber_ad_title">首次乘车可获得 ￥12 优惠</string>
     <string name="uber_ad_text">立即获得免费乘车机会</string>

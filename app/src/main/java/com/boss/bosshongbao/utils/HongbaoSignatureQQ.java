@@ -47,7 +47,7 @@ public class HongbaoSignatureQQ {
             Log.e("QQ-------------", 4 + "" + hongbaoInfo[0]);
             Log.e("QQ-------------", 5 + "" + hongbaoContent);
             /* So far we make sure it's a valid new coming hongbao. */
-            this.sender = hongbaoInfo[0];
+            this.sender = hongbaoInfo[0].replace(":","");
             this.time = hongbaoInfo[1];
             this.content = hongbaoContent;
             return true;
@@ -68,7 +68,6 @@ public class HongbaoSignatureQQ {
             if (str == null) return null;
             signature += str + "|";
         }
-
         return signature.substring(0, signature.length() - 1);
     }
 
@@ -85,16 +84,10 @@ public class HongbaoSignatureQQ {
         int count = node.getChildCount();
         String[] result = {"unknownSender", "unknownTime"};
         if (node.getChild(1).getClassName().equals("android.widget.TextView")) {
-
             result[0] = node.getChild(1).getText().toString();
-
         } else if (node.getChild(2).getClassName().equals("android.widget.TextView")) {
-
             result[0] = node.getChild(2).getText().toString();
-
         }
-
-
         return result;
     }
 

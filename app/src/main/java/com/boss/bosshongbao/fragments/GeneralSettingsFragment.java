@@ -10,10 +10,6 @@ import com.boss.bosshongbao.R;
 import com.boss.bosshongbao.WebViewActivity;
 import com.boss.bosshongbao.utils.UpdateTask;
 
-
-/**
- * Created by Zhongyi on 2/4/16.
- */
 public class GeneralSettingsFragment extends PreferenceFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,13 +40,32 @@ public class GeneralSettingsFragment extends PreferenceFragment {
                 return false;
             }
         });
-
         Preference excludeWordsPref = findPreference("pref_watch_exclude_words");
         String summary = getResources().getString(R.string.pref_watch_exclude_words_summary);
         String value = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_watch_exclude_words", "");
         if (value.length() > 0) excludeWordsPref.setSummary(summary + ":" + value);
 
         excludeWordsPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object o) {
+                String summary = getResources().getString(R.string.pref_watch_exclude_words_summary);
+                if (o != null && o.toString().length() > 0) {
+                    preference.setSummary(summary + ":" + o.toString());
+                } else {
+                    preference.setSummary(summary);
+                }
+                return true;
+            }
+        });
+
+
+//------------------------------------------------------------
+        Preference greetings = findPreference("pref_send_greetings");
+        String summary1 = getResources().getString(R.string.pref_watch_exclude_words_summary);
+        String value1 = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_watch_exclude_words", "");
+        if (value1.length() > 0) greetings.setSummary(summary1 + ":" + value1);
+
+        greetings.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object o) {
                 String summary = getResources().getString(R.string.pref_watch_exclude_words_summary);

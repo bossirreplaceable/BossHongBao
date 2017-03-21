@@ -18,6 +18,13 @@ android {
         }
     }
 }
+allprojects {
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
+}
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -29,5 +36,6 @@ dependencies {
     compile 'com.tencent.bugly:nativecrashreport:latest.release'
     //其中latest.release指代最新版本号，也可以指定明确的版本号，例如2.2.0
     compile 'com.android.support:appcompat-v7:25.1.0'
+    compile(name: 'tuia-2.0.1', ext: 'aar')
     testCompile 'junit:junit:4.12'
 }

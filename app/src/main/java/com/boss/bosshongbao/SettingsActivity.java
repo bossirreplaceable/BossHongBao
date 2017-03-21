@@ -18,10 +18,6 @@ import com.boss.bosshongbao.fragments.CommentSettingsFragment;
 import com.boss.bosshongbao.fragments.GeneralSettingsFragment;
 
 
-/**
- * Created by Zhongyi on 1/19/16.
- * Settings page.
- */
 public class SettingsActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {

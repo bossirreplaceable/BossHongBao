@@ -21,6 +21,7 @@ import android.util.DisplayMetrics;
 import com.boss.bosshongbao.utils.HongbaoSignature;
 import com.boss.bosshongbao.utils.HongbaoSignatureQQ;
 import com.boss.bosshongbao.utils.PowerUtil;
+import com.boss.bosshongbao.utils.Util_Screen;
 
 import java.util.List;
 
@@ -48,17 +49,18 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
     private static final String WECHAT_PACKAGENAME = "com.tencent.mm";
     private String currentActivityName = WECHAT_LUCKMONEY_GENERAL_ACTIVITY;
     private boolean isNotification = false, isChatContent = false, isSend = false;
-    private boolean isOpen = false, isUnpick = false, isGreetings = false, isSendGreetings = false, isPasswordHongbao = false;
+    private boolean isOpen = false, isUnpick = false, isGreetings = false, isPasswordHongbao = false;
     private AccessibilityNodeInfo rootNodeInfo, mReceiveNode, mUnpickNode, sendNode;
     //--------------------------------------------------------------------
     private boolean isQQ = false, isWechat = false;
-    private boolean isNotificationQQ = false, isOpenQQ = false, isSendQQ = false, isGreetingsQQ = false;
+    private boolean isNotificationQQ = false, isOpenQQ = false, isChatContentQQ = false, isGreetingsQQ = false;
     private AccessibilityNodeInfo rootNodeInfoQQ;
     private HongbaoSignature signature = new HongbaoSignature();
     private HongbaoSignatureQQ signatureQQ = new HongbaoSignatureQQ();
     private PowerUtil powerUtil;
     private SharedPreferences sharedPreferences;
-    private int bottomHongbao = 0;
+    private int bottomHongbao = 0, bottomHongbaoQQ = 0;
+
 
     /**
      * AccessibilityEvent
@@ -91,82 +93,98 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
                 isNotificationQQ = watchNotifications(event, QQ_NOTIFICATION_TIP);
             }
         }
-
-        //When a new red envelopes appears on the chat interface,call it;
+        rootNodeInfoQQ = getRootInActiveWindow();
         rootNodeInfo = getRootInActiveWindow();
-        if (isWechat && !isNotification && !isChatContent && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-            AccessibilityNodeInfo chatNode = getTheLastNode1(rootNodeInfo, WECHAT_VIEW_SELF_CH, WECHAT_VIEW_OTHERS_CH);
-            if (chatNode != null) {
+        //When a new red envelopes appears on the chat interface,call it;
+        if (sharedPreferences.getBoolean("pref_chat_content", false)) {
 
-                // chatNode.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                isChatContent = true;
+            if (isWechat && !isNotification && !isChatContent && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                AccessibilityNodeInfo chatNode = getTheLastNode1(rootNodeInfo, WECHAT_VIEW_SELF_CH, WECHAT_VIEW_OTHERS_CH);
+                if (chatNode != null) {
+                    // chatNode.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    isChatContent = true;
+
+                }
+            }
+            if (isQQ && !isNotificationQQ && !isChatContentQQ && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                Log.e("110+++++++++++", "++0");
+                AccessibilityNodeInfo chatNode = getTheLastNode1(rootNodeInfoQQ, QQ_PASSWORD_HONGBAO, QQ_UNPICK_HONGBAO);
+                if (chatNode != null) {
+                    isChatContentQQ = true;
+                }
             }
         }
+
         //If you can send a thank you,enter here
-        if (sharedPreferences.getBoolean("pref_send_greetings", false)) {
-            isSendGreetings = true;
+        String[] greetings = sharedPreferences.getString("pref_send_greetings", "").split(" +");
+        if (greetings.length > 0) {
+            Log.e("祝福语--------------", greetings.length + "");
             if (isWechat) {
                 sendGreetings(event);
             }
-            if (isQQ && isGreetingsQQ && signatureQQ.sender != null && currentActivityName.contains(QQ_HONGBAO_ACTIVITY)) {
-                sendComment(signatureQQ.sender);
-
+            if (isQQ && isGreetingsQQ && signatureQQ.commentString != null && currentActivityName.contains(QQ_HONGBAO_ACTIVITY)) {
+                sendComment(signatureQQ.commentString, rootNodeInfoQQ);
+                signatureQQ.commentString = null;
             }
         }
+
+
         //If you can automatically open the red envelopes,enter here
         if (sharedPreferences.getBoolean("pref_watch_chat", false)) {
-            if (isNotificationQQ && isQQ) {
+            if ((isNotificationQQ || isChatContentQQ) && isQQ) {
                 Log.e("0------------", "0");
                 watchQQ(event);
             }
             if ((isNotification || isChatContent) && isWechat) {
+                Log.e("Wechat++++++++++++++", "0");
                 watchChat(event);
             }
         }
-        if (isGreetingsQQ && signatureQQ.sender != null && currentActivityName.contains(QQ_HONGBAO_ACTIVITY)) {
-
-            sendComment(signatureQQ.sender);
-
-        }
-
-
     }
 
     private void watchQQ(AccessibilityEvent event) {
-        this.rootNodeInfoQQ = getRootInActiveWindow();
+        rootNodeInfoQQ = getRootInActiveWindow();
         if (rootNodeInfoQQ == null) return;
         Log.e("1------------", "1");
-
         if (isOpenQQ && currentActivityName.contains("QWalletPluginProxyActivity")) {
-            Log.e("4------------", "4");
+
             performGlobalAction(GLOBAL_ACTION_BACK);
-            isGreetingsQQ = true;
+            if (sharedPreferences.getString("pref_send_greetings", "").split(" +").length > 0) {
+                isGreetingsQQ = true;
+
+                Log.e("QQ++++++++++++++", "3333");
+            }
             isOpenQQ = false;
             isNotificationQQ = false;
             isPasswordHongbao = false;
+            signatureQQ.commentString = generateCommentStringQQ();
             return;
         }
         if (sharedPreferences.getBoolean("pref_qq_greetings", false)) {
             Log.e("5------------", "5");
             AccessibilityNodeInfo node1 = this.getTheLastNode(rootNodeInfoQQ, QQ_PASSWORD_HONGBAO);
             if (node1 != null) {
-
-                Log.e("6------------", "6");
-                node1.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                //Enter the password into input box.
-                List<AccessibilityNodeInfo> node2 = this.rootNodeInfoQQ.findAccessibilityNodeInfosByText(QQ_PASSWORD_ENTER);
-                if (node2 != null && node2.size() > 0) {
-                    Log.e("7------------", "7");
-                    isPasswordHongbao = true;
-                    node2.get(0).getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    //get the button of send,click
-                    AccessibilityNodeInfo nowNode = getRootInActiveWindow();
-                    AccessibilityNodeInfo sendNode = findOpenButton(nowNode);
-                    if (sendNode != null) {
-                        Log.e("8------------", "8");
-                        sendNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                        isOpenQQ = true;
+                String excludeWords = sharedPreferences.getString("pref_watch_exclude_words", "");
+                if (this.signatureQQ.generateSignatureQQ(node1, excludeWords)) {
+                    Log.e("6------------", "6");
+                    node1.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    //Enter the password into input box.
+                    List<AccessibilityNodeInfo> node2 = this.rootNodeInfoQQ.findAccessibilityNodeInfosByText(QQ_PASSWORD_ENTER);
+                    if (node2 != null && node2.size() > 0) {
+                        Log.e("7------------", "7");
+                        isPasswordHongbao = true;
+                        node2.get(0).getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                        //get the button of send,click
+                        AccessibilityNodeInfo nowNode = getRootInActiveWindow();
+                        AccessibilityNodeInfo sendNode = findOpenButton(nowNode);
+                        if (sendNode != null) {
+                            Log.e("8------------", "8");
+                            sendNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                            isOpenQQ = true;
+                        }
                     }
+                } else {
+                    isNotificationQQ = false;
                 }
             }
         }
@@ -189,15 +207,18 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
 
     //send a thank you
     private void sendGreetings(AccessibilityEvent event) {
+        Log.e("Wechat------Greetings", "" + 2);
         if (event.getClassName().equals("android.widget.Button") && currentActivityName.contains(WECHAT_LUCKMONEY_GENERAL_ACTIVITY)) {
             AccessibilityNodeInfo sendNode1 = event.getSource();
+            Log.e("Wechat------Greetings", "" + 3);
             if (sendNode1 != null) {
                 sendNode = sendNode1;
             }
         }
         if (isGreetings && signature.commentString != null
                 && currentActivityName.contains(WECHAT_LUCKMONEY_GENERAL_ACTIVITY)) {
-            sendComment(signature.commentString);
+            sendComment(signature.commentString, rootNodeInfo);
+            isSend = true;
             isGreetings = false;
             signature.commentString = null;
         }
@@ -205,7 +226,6 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
             sendNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
             isSend = false;
         }
-
     }
 
     //open wechat's red envelopes
@@ -214,6 +234,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         if (rootNodeInfo == null) return;
         mReceiveNode = null;
         mUnpickNode = null;
+        Log.e("Wechat++++++++++++++", "1");
         checkNodeInfo();
         /* 如果已经接收到红包并且还没有戳开 */
         if (isOpen && mReceiveNode != null) {
@@ -238,9 +259,10 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         }
     }
 
+
     private void checkNodeInfo() {
         if (this.rootNodeInfo == null) return;
-
+        Log.e("Wechat++++++++++++++", "2");
         /* 聊天会话窗口，遍历节点匹配“领取红包”和"查看红包" */
         if (currentActivityName.contains(WECHAT_LUCKMONEY_CHATTING_ACTIVITY)
                 || currentActivityName.contains(WECHAT_LUCKMONEY_GENERAL_ACTIVITY)) {
@@ -272,15 +294,18 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
             performGlobalAction(GLOBAL_ACTION_BACK);
             isNotification = false;
             isChatContent = false;
-            if (isSendGreetings) {
+            if (sharedPreferences.getString("pref_send_greetings", "").split(" +").length > 0) {
                 isGreetings = true;
+                Log.e("Wechat++++++++++++++", "3");
             }
             signature.commentString = generateCommentString();
         }
     }
 
+
     //Click the open button
     private void openPacket() {
+
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         float dpi = metrics.density;
         if (android.os.Build.VERSION.SDK_INT <= 23) {
@@ -343,6 +368,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         if (!tip.contains(hongbao)) {
             return false;
         }
+
         Parcelable parcelable = event.getParcelableData();
         if (parcelable instanceof Notification) {
             Notification notification = (Notification) parcelable;
@@ -387,10 +413,13 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
     }
 
 
-    private void sendComment(String etContent) {
+    private void sendComment(String etContent, AccessibilityNodeInfo root) {
         try {
-            AccessibilityNodeInfo etNode = findEditText(this.rootNodeInfo);
+
+            AccessibilityNodeInfo etNode = findEditText(root);
+            Log.e("QQ------Greetings", "" + 2);
             if (etNode != null) {
+                Log.e("QQ------Greetings", "" + 3);
                 Bundle arguments = new Bundle();
                 arguments.putCharSequence(AccessibilityNodeInfo
                         .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, etContent);
@@ -422,6 +451,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         if (node == null) {
             return null;
         }
+        Log.e("QQ------Greetings", "" + 4);
         //非layout元素
         if (node.getChildCount() == 0) {
             if ("android.widget.EditText".equals(node.getClassName())) {
@@ -456,6 +486,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
                 tempNode.getBoundsInScreen(bounds);
                 if (bounds.bottom > 0) {
                     bottomHongbao = bounds.bottom;
+
                 }
                 Log.e("Bottom---------1", bounds.bottom + "");
                 if (bounds.bottom > bottom) {
@@ -470,6 +501,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
 
 
     private AccessibilityNodeInfo getTheLastNode1(AccessibilityNodeInfo rootNode, String... texts) {
+        if (rootNode == null) return null;
         AccessibilityNodeInfo lastNode = null, tempNode;
         List<AccessibilityNodeInfo> nodes;
         if (bottomHongbao <= 0) return null;
@@ -482,8 +514,10 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
                 if (tempNode == null) return null;
                 Rect bounds = new Rect();
                 tempNode.getBoundsInScreen(bounds);
-
-                if (bounds.bottom == bottomHongbao) {
+                Log.e("110++++++++++bottom=", bounds.bottom + "");
+                int aa = bounds.bottom / 10;
+                int bb = bottomHongbao / 10;
+                if (aa == bb) {
                     lastNode = tempNode;
                     Log.e("Success-----------", "yes");
                 }
@@ -524,21 +558,23 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
     }
 
     private String generateCommentString() {
-        if (!signature.others) return null;
+        if (!signature.others) {
+            return null;
+        }
+        String[] wordsArray = sharedPreferences.getString("pref_send_greetings", "").split(" +");
+        if (wordsArray.length == 0) {
+            return null;
+        }
+        return "@" + signature.sender + " " + wordsArray[(int) (Math.random() * wordsArray.length)];
+    }
 
-//        Boolean needComment = sharedPreferences.getBoolean("pref_comment_switch", false);
-//        if (!needComment) return null;
+    private String generateCommentStringQQ() {
 
-//        String[] wordsArray = sharedPreferences.getString("pref_comment_words", "").split(" +");
-//        if (wordsArray.length == 0) return null;
-
-//        Boolean atSender = sharedPreferences.getBoolean("pref_comment_at", false);
-//        if (atSender) {
-        return "@" + signature.sender;
-        //+ " " + wordsArray[(int) (Math.random() * wordsArray.length)];
-//        } else {
-//            return wordsArray[(int) (Math.random() * wordsArray.length)];
-//        }
+        String[] wordsArray = sharedPreferences.getString("pref_send_greetings", "").split(" +");
+        if (wordsArray.length == 0) {
+            return null;
+        }
+        return "@" + signatureQQ.sender + " " + wordsArray[(int) (Math.random() * wordsArray.length)];
     }
 }
 

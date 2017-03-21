@@ -67,7 +67,7 @@
             android:layout_marginRight="5dp"
             android:layout_weight="0.35"
             android:background="#ffffff"
-            android:onClick="openGitHub"
+            android:onClick="openWelfare"
             android:orientation="vertical"
             android:textColor="#858585"
             android:textSize="20dp">

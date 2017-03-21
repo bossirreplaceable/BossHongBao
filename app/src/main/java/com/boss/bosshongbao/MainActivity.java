@@ -5,10 +5,12 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.mtp.MtpObjectInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -16,8 +18,18 @@ import android.view.accessibility.AccessibilityManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.boss.bosshongbao.utils.Welfare;
 import com.tencent.bugly.Bugly;
+import com.umeng.analytics.MobclickAgent;
+
 import java.util.List;
+
+import cn.bmob.v3.Bmob;
+import cn.bmob.v3.BmobQuery;
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.QueryListener;
+import cn.bmob.v3.listener.SaveListener;
 
 
 public class MainActivity extends Activity implements AccessibilityManager.AccessibilityStateChangeListener {
@@ -27,24 +39,49 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
     private ImageView pluginStatusIcon;
     //AccessibilityService 管理
     private AccessibilityManager accessibilityManager;
+    private String welfareUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        MobclickAgent.setScenarioType(this, MobclickAgent.EScenarioType.E_UM_NORMAL);
+        Bmob.initialize(this,"2b453b07e4a4e195f8e4dcd48d61cf2f");
         Bugly.init(getApplicationContext(), "526f3239dd", false);
         setContentView(R.layout.activity_main);
         pluginStatusText = (TextView) findViewById(R.id.layout_control_accessibility_text);
         pluginStatusIcon = (ImageView) findViewById(R.id.layout_control_accessibility_icon);
-
+        initBmobWelfare();
         handleMaterialStatusBar();
-
         explicitlyLoadPreferences();
         //监听AccessibilityService 变化
         accessibilityManager = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
         accessibilityManager.addAccessibilityStateChangeListener(this);
         updateServiceStatus();
+
     }
+    private void initBmobWelfare(){
+
+        BmobQuery<Welfare> query = new BmobQuery<Welfare>();
+        query.getObject("2825f777ef", new QueryListener<Welfare>() {
+
+            @Override
+            public void done(Welfare object, BmobException e) {
+                if(e==null){
+
+                 welfareUrl= object.getWelfareUrl();
+
+                }else{
+                    Log.i("bmob","失败："+e.getMessage()+","+e.getErrorCode());
+                }
+            }
+
+        });
+
+
+
+
+    }
+
 
 
     private void explicitlyLoadPreferences() {
@@ -69,12 +106,13 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
     @Override
     protected void onPause() {
         super.onPause();
+        MobclickAgent.onPause(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
+        MobclickAgent.onResume(this);
         updateServiceStatus();
         // Check for update when WIFI is connected or on first time.
 //        if (ConnectivityUtil.isWifi(this) || UpdateTask.count == 0)
@@ -140,13 +178,16 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
         }
         return false;
     }
+    public void openWelfare(View view) {
+        if (welfareUrl!=null) {
+            Intent webViewIntent = new Intent(this, WebViewActivity.class);
+            webViewIntent.putExtra("title", "福利");
+            webViewIntent.putExtra("url", welfareUrl);
+            startActivity(webViewIntent);
+        }
+    }
 }
-//   public void openGitHub(View view) {
-//        Intent webViewIntent = new Intent(this, WebViewActivity.class);
-//        webViewIntent.putExtra("title", getString(R.string.webview_github_title));
-//        webViewIntent.putExtra("url", "https://github.com/geeeeeeeeek/WeChatLuckyMoney");
-//        startActivity(webViewIntent);
-//    }
+
 //
 //    public void openUber(View view) {
 //        Intent webViewIntent = new Intent(this, WebViewActivity.class);

@@ -72,17 +72,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         if (sharedPreferences == null) return;
         //Monitor the current active page
         setCurrentActivityName(event);
-        if (event.getPackageName().equals(WECHAT_PACKAGENAME)) {
-            isWechat = true;
-        } else {
-            isWechat = false;
-        }
-        if (event.getPackageName().equals(QQ_PACKAGENAME)) {
-            isQQ = true;
-        } else {
-            isQQ = false;
-        }
-
+        isWechatOrQQ(event);
         Log.e("ClassName +++++++++++++", currentActivityName);
         //Monitor the notification bar
         if (sharedPreferences.getBoolean("pref_watch_notification", false)) {
@@ -141,6 +131,23 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
             }
         }
     }
+
+    private void isWechatOrQQ(AccessibilityEvent event){
+
+        if (event.getPackageName().equals(WECHAT_PACKAGENAME)) {
+            isWechat = true;
+        } else {
+            isWechat = false;
+        }
+        if (event.getPackageName().equals(QQ_PACKAGENAME)) {
+            isQQ = true;
+        } else {
+            isQQ = false;
+        }
+
+    }
+
+
 
     private void watchQQ(AccessibilityEvent event) {
         rootNodeInfoQQ = getRootInActiveWindow();

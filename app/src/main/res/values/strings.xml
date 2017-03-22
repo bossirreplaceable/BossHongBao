@@ -33,9 +33,9 @@
     <string name="download_hint">点击\"普通下载\"获取 Uber</string>
     <string name="watch_options">监视选项</string>
     <string name="watch_notifications">监视通知栏</string>
-    <string name="watch_notifications_hint">读取新消息通知中的红包提示并进入聊天页</string>
+    <string name="watch_notifications_hint">通知栏中有红包提醒时，打开进入</string>
     <string name="watch_list">监视聊天界面</string>
-    <string name="watch_list_hint">当前聊天界面有新红包出现时，打开</string>
+    <string name="watch_list_hint">打开当前聊天界面出现的新红包</string>
     <string name="anti_block_options">防封号选项</string>
     <string name="auto_open_packets">自动拆开红包</string>
     <string name="open_with_delay">延时拆开红包</string>

@@ -9,15 +9,15 @@
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="pref_wechat"
-            android:title="监视微信" />
+            android:title="微信红包" />
 
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="pref_qq"
-            android:title="监视QQ" />
+            android:title="QQ红包" />
         <CheckBoxPreference
             android:defaultValue="true"
-            android:key="pref_qq_greetings"
+            android:key="pref_qq_password"
             android:title="QQ口令红包" />
         <CheckBoxPreference
             android:defaultValue="true"
@@ -25,7 +25,7 @@
             android:summary="@string/watch_notifications_hint"
             android:title="@string/watch_notifications" />
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="pref_chat_content"
             android:summary="@string/watch_list_hint"
             android:title="@string/watch_list" />
@@ -57,26 +57,15 @@
             android:summary="@string/pref_watch_exclude_words_summary"
             android:title="@string/skip_phrases" />
     </PreferenceCategory>
-    <PreferenceCategory
-        android:layout="@layout/preference_category"
-        android:title="@string/about">
-        <Preference
-            android:key="pref_etc_check_update"
-            android:summary="http://dwz.cn/WeChatLuckyMoney"
-            android:title="@string/check_new_version" />
-        <Preference
-            android:key="pref_etc_issue"
-            android:summary="@string/help_hint"
-            android:title="@string/help_and_feedback" />
-    </PreferenceCategory>
-    <PreferenceCategory
-        android:layout="@layout/preference_category"
-        android:title="@string/labs">
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="pref_watch_on_lock"
-            android:summary="@string/snatch_on_lockscreen_hint"
 
-            android:title="@string/snatch_on_lockscreen" />
-    </PreferenceCategory>
+    <!--<PreferenceCategory-->
+        <!--android:layout="@layout/preference_category"-->
+        <!--android:title="@string/labs">-->
+        <!--<CheckBoxPreference-->
+            <!--android:defaultValue="false"-->
+            <!--android:key="pref_watch_on_lock"-->
+            <!--android:summary="@string/snatch_on_lockscreen_hint"-->
+
+            <!--android:title="@string/snatch_on_lockscreen" />-->
+    <!--</PreferenceCategory>-->
 </PreferenceScreen>

@@ -67,18 +67,13 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
             @Override
             public void done(Welfare object, BmobException e) {
                 if(e==null){
-
                  welfareUrl= object.getWelfareUrl();
-
                 }else{
                     Log.i("bmob","失败："+e.getMessage()+","+e.getErrorCode());
                 }
             }
 
         });
-
-
-
 
     }
 
